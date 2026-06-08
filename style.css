@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgroMarket | O Marketplace do Campo</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header class="main-header">
+        <nav class="navbar">
+            <div class="logo">
+                <h1>Agro<span>Market</span></h1>
+            </div>
+            
+            <div class="search-bar">
+                <input type="text" id="search-input" placeholder="Buscar tratores, sementes, gado..." oninput="filtrarProdutos()">
+                <button type="button">Buscar</button>
+            </div>
+
+            <ul class="nav-menu">
+                <li class="nav-item"><a href="#">Início</a></li>
+                <li class="nav-item"><a href="#">Anunciar</a></li>
+                <li class="nav-item"><a href="#" onclick="verInteresses()">Visualizar Cotações (<span id="quote-count">0</span>)</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="container">
+        <h2 class="section-title">Produtos e Maquinários Disponíveis</h2>
+        
+        <div class="product-grid" id="vitrine-produtos"></div>
+    </main>
+
+    <script>
+        // 1. INFORMAÇÕES DO SITE (Simulação de uma Base de Dados/API do Marketplace)
+        const informacoesDoSite = [
+            {
+                id: 1,
+                titulo: "Trator Agrícola Utility 75cv - 4x4",
+                categoria: "Maquinários",
+                preco: 185000.00,
+                imagem: "https://images.unsplash.com/photo-1592417817098-8f3d6eb19675?w=500",
+                localizacao: "Cascavel - PR",
+                vendedor: "AgroTratores Ltda",
+                tag: "Usado",
+                tipoBotao: "cotacao"
+            },
+            {
+                id: 2,
+                titulo: "Sementes de Milho Híbrido Alta Produtividade (20kg)",
+                categoria: "Sementes e Mudas",
+                preco: 320.00,
+                imagem: "https://images.unsplash.com/photo-1574325131876-a79997ec59d0?w=500",
+                localizacao: "Ribeirão Preto - SP",
+                vendedor: "Sementes Progresso",
+                tag: "Orgânico",
+                tipoBotao: "comprar"
+            },
+            {
+                id: 3,
+                titulo: "Fertilizante NPK 10-10-10 Concentrado - 50kg",
+                categoria: "Nutrição Vegetal",
+                preco: 185.00,
+                imagem: "https://images.unsplash.com/photo-1628352081506-83c43123ed6d?w=500",
+                localizacao: "Uberlândia - MG",
+                vendedor: "NutriCampo",
+                tag: "Oferta",
+                tipoBotao: "comprar"
+            },
+            {
+                id: 4,
+                titulo: "Touro Nelore P.O. de Elite para Reprodução",
+                categoria: "Pecuária / Gado",
+                preco: 12000.00,
+                imagem: "https://images.unsplash.com/photo-1516467508483-a7212febe31a?w=500",
+                localizacao: "Goiânia - GO",
+                vendedor: "Fazenda Santa Maria",
+                tag: "Genética Provada",
+                tipoBotao: "cotacao"
+            }
+        ];
+
+        let listaInteresses = [];
+
+        // 2. FUNÇÃO PARA RENDERIZAR OS PRODUTOS NA TELA
+        function carregarVitrine(produtos) {
+            const vitrine = document.getElementById('vitrine-produtos');
+            vitrine.innerHTML = ""; // Limpa a vitrine anterior
+
+            if(produtos.length === 0) {
+                vitrine.innerHTML = "<p>Nenhum produto encontrado para esta busca.</p>";
+                return;
+            }
+
+            produtos.forEach(produto => {
+                // Formatação de moeda (Real brasileiro)
+                const precoFormatado = produto.preco.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                
+                // Define o estilo do botão com base no tipo de negócio (Alta tecnologia/Gado = Cotação)
+                let textoBotao = produto.tipoBotao === 'cotacao' ? 'Solicitar Cotação' : 'Comprar Agora';
+                let classeBotao = produto.tipoBotao === 'cotacao' ? 'btn-buy style-cotacao' : 'btn-buy';
+
+                // Criação do HTML do card
+                const card = `
+                    <article class="product-card">
+                        <div class="product-image">
+                            ${produto.tag ? `<span class="badge-tag">${produto.tag}</span>` : ''}
+                            <img src="${produto.imagem}" alt="${produto.titulo}">
+                        </div>
+                        <div class="product-info">
+                            <span class="product-category">${produto.categoria}</span>
+                            <h3 class="product-title">${produto.titulo}</h3>
+                            <span class="product-price">${precoFormatado}</span>
+                            
+                            <div class="agro-details">
+                                <p>📍 <strong>Local:</strong> ${produto.localizacao}</p>
+                                <p>🚜 <strong>Anunciante:</strong> ${produto.vendedor}</p>
+                            </div>
+
+                            <button class="${classeBotao}" onclick="demonstrarInteresse(${produto.id})">
+                                ${textoBotao}
+                            </button>
+                        </div>
+                    </article>
+                `;
+                vitrine.innerHTML += card;
+            });
+        }
+
+        // 3. FUNÇÃO DE FILTRO (Busca em Tempo Real)
+        function filtrarProdutos() {
+            const termoBusca = document.getElementById('search-input').value.toLowerCase();
+            const produtosFiltrados = informacoesDoSite.filter(produto => 
+                produto.titulo.toLowerCase().includes(termoBusca) || 
+                produto.categoria.toLowerCase().includes(termoBusca) ||
+                produto.vendedor.toLowerCase().includes(termoBusca)
+            );
+            carregarVitrine(produtosFiltrados);
+        }
+
+        // 4. AÇÃO DO BOTÃO
+        function demonstrarInteresse(id) {
+            const produto = informacoesDoSite.find(p => p.id === id);
+            listaInteresses.push(produto);
+            document.getElementById('quote-count').innerText = listaInteresses.length;
+            
+            if(produto.tipoBotao === 'cotacao') {
+                alert(`Solicitação enviada para ${produto.vendedor}! O produtor entrará em contacto para negociar o valor do item: ${produto.titulo}.`);
+            } else {
+                alert(`${produto.titulo} foi adicionado ao seu carrinho de compras.`);
+            }
+        }
+
+        function verInteresses() {
+            if(listaInteresses.length === 0) {
+                alert("Ainda não selecionou nenhum produto.");
+                return;
+            }
+            let resumo = "Itens de interesse:\n";
+            listaInteresses.forEach(p => resumo += `- ${p.titulo} (${p.vendedor})\n`);
+            alert(resumo);
+        }
+
+        // Inicializa o site carregando todos os dados
+        window.onload = () => carregarVitrine(informacoesDoSite);
+    </script>
+
+    <style>
+        .agro-details {
+            font-size: 13px;
+            color: #555;
+            margin-bottom: 15px;
+            background: #f1f8e9;
+            padding: 8px;
+            border-radius: 4px;
+        }
+        .style-cotacao {
+            background-color: var(--accent-color) !important;
+        }
+        .style-cotacao:hover {
+            background-color: #e65100 !important;
+        }
+    </style>
+</body>
+</html>
